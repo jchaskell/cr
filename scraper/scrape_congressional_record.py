@@ -4,13 +4,11 @@ import os, re, random, codecs, sys, requests, time
 from datetime import datetime, date, timedelta as td
 from bs4 import BeautifulSoup
 from time import sleep
-# import filterCR #this will have functions (or a class?) to take CR and put it into files per person per congress
-# import datetime as dt #change script later to use this
 
 class scrapeCR:
 
     def __init__(self, start_date, end_date, directory):
-        ####Change self.pause for amount you want to pause between calls to the website(it randomizes between 0 sec and the your input)
+        # Change self.pause for amount you want to pause between calls to the website(it randomizes between 0 sec and the your input)
         self.pause  = 4
 
         self.url_beg = "https://www.congress.gov/congressional-record/"
@@ -22,36 +20,35 @@ class scrapeCR:
 
     def daterange(self, start_date, end_date):
         """Creates a generator over a list of dates between the start and end date"""
-        #borrowed from: http://stackoverflow.com/questions/1060279/iterating-through-a-range-of-dates-in-python
+        # Borrowed from: http://stackoverflow.com/questions/1060279/iterating-through-a-range-of-dates-in-python
         for n in range(int ((end_date - start_date).days)):
             yield start_date + td(n)
 
     def scrape(self):
-        """Defines and runs through scraping loops"""
-        #create a list  of all of the dates
+        """Defines loop through dates to scrape"""
+        # Create a list  of all of the dates
         dates_to_scrape = [single_date.strftime("%Y/%m/%d") for single_date in self.daterange(self.start_date, self.end_date)]
 
         os.chdir(self.directory)
         for date in dates_to_scrape:
-            # print date
-            #get url
+            # Get url
             main_url = self.url_beg + date + self.url_end
             filename = re.sub("/", "_", date) + ".txt"
-            #test url for page without links
+            # Test to see if url has links
             links = self.get_links(main_url)
             if len(links) == 0:
                 continue
             sleep(random.uniform(0,self.pause))
             dailyCR = ""
             for l in links:
-                if re.match("^/", l): #links used to be full links, now truncated
+                if re.match("^/", l): # Links used to be full links, now truncated
                     link_fix = "https://www.congress.gov" + l
                 else:
                     link_fix = l
                 text = self.scrape_page(link_fix)
                 dailyCR += " " + text
 
-            #print to file
+            # Write to file
             with open(filename, "w") as file:
                 file.write(dailyCR)
 
@@ -60,7 +57,8 @@ class scrapeCR:
         # print(url)
         page = requests.get(url)
         soup = BeautifulSoup(page.content)
-        tds = [td for td in soup.find_all('td')] #only even numbered indexes
+        tds = [td for td in soup.find_all('td')]
+        # Only even numbered indexes have the linkes we need
         tds_relevant = [tds[i] for i in range(len(tds)) if i % 2 == 0]
         links = [link.a.get('href') for link in tds_relevant]
         return(links)
@@ -89,7 +87,7 @@ def main(args):
     """Initializes class and runs through the functions"""
     directory = args[0]
 
-    #create dates
+    # Create dates
     start_date = args[1].split("-")
     start_date = date(int(start_date[2]), int(start_date[0]), int(start_date[1]))
     if len(args) == 3:
