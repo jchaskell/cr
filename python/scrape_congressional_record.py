@@ -70,7 +70,7 @@ class scrapeCR:
         soup = BeautifulSoup(page.content)
         try: #sometimes I get an attribute error that doesn't seem to be real (it doesn't happen every time when I run the same code again), so I try 10 times with a pause
             text = soup.find('pre', class_ = 'styled').contents
-            text_all = ''.join(unicode(text))
+            text_all = ''.join(str(text))
             return text_all
         except AttributeError:
             test = 0
@@ -78,7 +78,7 @@ class scrapeCR:
                 sleep(random.uniform(0,self.pause))
                 try:
                     text = soup.find('pre', class_ = 'styled').contents
-                    text_all = ''.join(unicode(text))
+                    text_all = ''.join(str(text))
                     return text_all
                 except AttributeError:
                     test += 1
@@ -104,6 +104,7 @@ if __name__ == '__main__':
         sys.exit()
     else:
         args = sys.argv[1:]
+        print(args)
         main(args)
 
 
