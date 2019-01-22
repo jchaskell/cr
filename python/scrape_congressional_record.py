@@ -1,111 +1,112 @@
 """Scrapes Senate congressional record. Input is: directory where to print the files start date: 01/01/2000 format, end date. End date defaults to current date if none given"""
 
-import os, re, random, codecs, sys, requests, time
-from datetime import datetime, date, timedelta as td
-from bs4 import BeautifulSoup
+import logging
+import random
+import re
+import requests
+import sys
+from datetime import datetime, date, timedelta
 from time import sleep
 
-class scrapeCR:
+from bs4 import BeautifulSoup
 
-    def __init__(self, start_date, end_date, directory):
-        # Change self.pause for amount you want to pause between calls to the website(it randomizes between 0 sec and the your input)
-        self.pause  = 4
+log = logging.getLogger(__name__)
 
-        self.url_beg = "https://www.congress.gov/congressional-record/"
-        self.url_end = "/senate-section"
+class NoCRContentException(Exception):
+    """Raised when there is no CR content at the given url"""
+    pass
 
-        self.start_date = start_date
-        self.end_date = end_date
-        self.directory = directory
+class CRScraper:
+    """Class for scraping one day's worth of content from the Congressional Record"""
 
-    def daterange(self, start_date, end_date):
-        """Creates a generator over a list of dates between the start and end date"""
-        # Borrowed from: http://stackoverflow.com/questions/1060279/iterating-through-a-range-of-dates-in-python
-        for n in range(int ((end_date - start_date).days)):
-            yield start_date + td(n)
+    self.link_prefix = "https://www.congress.gov"
 
-    def scrape(self):
-        """Defines loop through dates to scrape"""
-        # Create a list  of all of the dates
-        dates_to_scrape = [single_date.strftime("%Y/%m/%d") for single_date in self.daterange(self.start_date, self.end_date)]
+    def __init__(self, url, filename):
+        self.url = url
+        self.output_file = filename
 
-        os.chdir(self.directory)
-        for date in dates_to_scrape:
-            # Get url
-            main_url = self.url_beg + date + self.url_end
-            filename = re.sub("/", "_", date) + ".txt"
-            # Test to see if url has links
-            links = self.get_links(main_url)
-            if len(links) == 0:
-                continue
-            sleep(random.uniform(0,self.pause))
-            dailyCR = ""
-            for l in links:
-                if re.match("^/", l): # Links used to be full links, now truncated
-                    link_fix = "https://www.congress.gov" + l
-                else:
-                    link_fix = l
-                text = self.scrape_page(link_fix)
-                dailyCR += " " + text
-
-            # Write to file
-            with open(filename, "w") as file:
-                file.write(dailyCR)
-
-    def get_links(self, url):
-        """Gets links for one day of Senate CR"""
-        # print(url)
-        page = requests.get(url)
-        soup = BeautifulSoup(page.content)
-        tds = [td for td in soup.find_all('td')]
-        # Only even numbered indexes have the linkes we need
-        tds_relevant = [tds[i] for i in range(len(tds)) if i % 2 == 0]
-        links = [link.a.get('href') for link in tds_relevant]
-        return(links)
+    def get_links(self):
+        """Gets links for one day of Congressional Record"""
+        soup = BeautifulSoup(requests.get(self.url).content)
+        links = [link for link in soup.find_all('td')]
+        # Only even numbered indexes have the needed links
+        relevant_links = [link[i].a.get('href') for i in range(len(links)) if i % 2 == 0]
+        # Create full links if necessary
+        return([self.link_prefix + l if re.match("^/", l) else l for relevant_links])
 
     def scrape_page(self, url):
-        """Scrapes one page from the CR and outputs it to a file"""
-        # print(url)
-        page = requests.get(url)
-        soup = BeautifulSoup(page.content)
-        try: #sometimes I get an attribute error that doesn't seem to be real (it doesn't happen every time when I run the same code again), so I try 10 times with a pause
-            text = soup.find('pre', class_ = 'styled').contents
-            text_all = ''.join(str(text))
-            return text_all
-        except AttributeError:
-            test = 0
-            while test < 10: #I have no had a problem with this breaking but it feasibly could
-                sleep(random.uniform(0,self.pause))
-                try:
-                    text = soup.find('pre', class_ = 'styled').contents
-                    text_all = ''.join(str(text))
-                    return text_all
-                except AttributeError:
-                    test += 1
+        """Scrapes one section of the Congressional Record"""
+        f = requests.get(url)
+        soup = BeautifulSoup(f.content)
+        text = soup.find('pre', class_ = 'styled').contents
+        return(''.join(str(text))
+
+    def save_file(self):
+        """Writes content to file"""
+        log.info("Writing to file: " + self.filename)
+        with open(self.filename, "w") as file:
+            file.write(self.content)
+
+    def run(self):
+        """Scrapes one day of Congressional Record Content"""
+        links = self.get_links()
+        if len(links) == 0:
+            raise NoCRContentException
+        else:
+            self.content = " ".join([self.scrape_page(url) for url in links])
+
+class CRWriter:
+    """Class for scraping and saving a complete time period of the Congressional Record"""
+    self.max_pause = 4
+    self.url_prefix = "https://www.congress.gov/congressional-record/"
+    self.url_suffix_dict = {
+            "s": "/senate-section",
+            "h": "/house-section"}
+
+    def __init__(self, house, directory, startdate, enddate):
+        self.house = house.upper()
+        self.url_suffix = self.url_suffix_dict[house]
+        self.output_directory = directory
+        self.startdate = datetime.strptime(startdate, "%m-%d-%Y").date()
+        self.enddate = datetime.strptime(enddate, "%m-%d-%Y").date()
+
+    def daterange(self):
+        """Crates a generator over a list of dates"""
+        # Borrowed from: http://stackoverflow.com/questions/1060279/iterating-through-a-range-of-dates-in-python
+        for n in range(int((self.enddate - self.startdate).days)):
+            yield start_date + timedelta(n)
+
+    def create_links(self):
+        """Creates list of CR links for each day in the date range"""
+        return([self.url_prefix + d.strftime("%Y/%m/%d") + self.url_suffix for d in self.daterange])
+
+    def create_filenames(self):
+        """Creates list of filenames for each day in the date range"""
+        return([self.directory + "/" + self.house + d + ".txt" for d in self.daterange])
+
+    def run(self):
+        """Scrapes and saves Congressional Record for complete time period"""
+
+        # Zip links and filenames and loop through
+        for l, f in zip(self.create_links(), self.create_filenames):
+            # Create scraper
+            try:
+                log.info("Retrieving content for " + l)
+                s = CRScraper(l, f)
+                s.run()
+            # Catch exceptions
+            except NoCRContentException:
+                log.info("No content for " + l)
+                continue
+
+            s.save_file()
 
 def main(args):
-    """Initializes class and runs through the functions"""
-    directory = args[0]
-
-    # Create dates
-    start_date = args[1].split("-")
-    start_date = date(int(start_date[2]), int(start_date[0]), int(start_date[1]))
-    if len(args) == 3:
-        end_date = args[2].split("-")
-    else:
-        end_date = time.strftime("%d-%m-%Y").split("-")
-    end_date =date(int(end_date[2]), int(end_date[0]), int(end_date[1]))
-    scrape = scrapeCR(start_date, end_date, directory)
-    scrape.scrape()
+    CRWriter(args[0], args[1], args[2], args[3]).run()
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("Too few arguments")
+    if len(sys.argv) != 5:
+        print("Incorrect number of arguments. Program requires 4: house of congress (s/h), directory for saving transcripts, startdate (Y-m-d) and enddate (Y-m-d)")
         sys.exit()
     else:
-        args = sys.argv[1:]
-        print(args)
-        main(args)
-
-
-
+        main(sys.argv[1:])
