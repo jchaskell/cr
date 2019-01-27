@@ -3,14 +3,37 @@
 import re
 import unittest
 from datetime import datetime
+
+import requests
+import requests_mock
+
 from cr.scrape_congressional_record import CRWriter
 
 startdate = "01-01-2010"
 enddate = "01-02-2010"
 tmp_directory = "temp"
 
-#class CRScraperTest(unittest.TestCase):
+class CRScraperTest(unittest.TestCase):
+    # Need to create 2 test pages for the daily page - 1 with real content and 1 with none
+    # Also need 2 test text pages 
+    
     # TODO: write these tests
+    expected_links
+
+    def setUp(self):
+        self.test_scraper = CRScraper()
+        self.test_exception = CRScraper()
+
+    def test_get_links(self):
+
+        self.assertEqual( , self.expected_links)
+        self.assertEqual( , [])
+
+    def scrape_page(self):
+        
+    def save_file(self):
+        # 
+
 
 class CRWriterTest(unittest.TestCase):
     expected_dates = [datetime.strptime(startdate, "%m-%d-%Y").date(),
@@ -34,7 +57,7 @@ class CRWriterTest(unittest.TestCase):
         self.assertEqual(self.test_writer.create_filenames(), self.expected_filenames)
         self.assertEqual(self.test_writer_house.create_filenames(), [re.sub("S", "H", f) for f in self.expected_filenames])
 
-    #def test_run(self):
+    def test_run(self):
         # TODO: finish this test
 
 if __name__ == '__main__':
