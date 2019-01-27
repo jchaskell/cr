@@ -1,0 +1,15 @@
+language: python
+
+python:
+  - "2.7"
+  - "3.6"
+
+install:
+  - pip install -r python/requirements.txt
+
+# Run python tests
+script: cd python; python -m unittest test.test_scrape_congressional_record
+
+branches:
+  only:
+    - master
