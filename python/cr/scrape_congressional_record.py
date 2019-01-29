@@ -30,7 +30,7 @@ class CRScraper:
         soup = BeautifulSoup(requests.get(self.url).content)
         links = [link for link in soup.find_all('td')]
         # Only even numbered indexes have the needed links
-        relevant_links = [link[i].a.get('href') for i in range(len(links)) if i % 2 == 0]
+        relevant_links = [links[i].a.get('href') for i in range(len(links)) if i % 2 == 0]
         # Create full links if necessary
         return([self.link_prefix + l if re.match("^/", l) else l for l in relevant_links])
 
