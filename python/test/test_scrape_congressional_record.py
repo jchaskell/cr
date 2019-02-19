@@ -2,6 +2,7 @@
 
 import os
 import re
+import shutil
 import unittest
 from datetime import datetime
 
@@ -33,6 +34,10 @@ class CRScraperTest(unittest.TestCase):
         self.resources_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources")
         self.test_scraper = CRScraper(day_level_urls[1], filenames[1])
         self.test_exception = CRScraper(day_level_urls[0], filenames[0])
+
+    def tearDown(self):
+        if os.path.isdir(tmp_directory):
+            shutil.rmtree(tmp_directory)
     
     def mock_text_helper(self, mocker, url, filename):
         with open(os.path.join(self.resources_dir, filename)) as f:
@@ -57,9 +62,14 @@ class CRScraperTest(unittest.TestCase):
         # Note: there seems to be some trailing characters in the expected output file that I can't seem to get rid of - hence the "assertIn" instead of assertEqual
         self.assertIn(self.test_scraper.scrape_page(self.expected_urls[0]), expected_output)
 
- #   def test_save_file(self):
-        # 
-    #def test_run()
+    @unittest.skip("TODO")
+    def test_save_file(self):
+        # Note: this requires running run first before the file can be saved...j
+        pass
+
+    @unittest.skip("TODO")
+    def test_run(self):
+        pass
 
 
 class CRWriterTest(unittest.TestCase):
@@ -81,9 +91,10 @@ class CRWriterTest(unittest.TestCase):
     def test_create_filenames(self):
         self.assertEqual(self.test_writer.create_filenames(), filenames)
         self.assertEqual(self.test_writer_house.create_filenames(), [re.sub("S", "H", f) for f in self.expected_filenames])
-
-  #  def test_run(self):
-        # TODO: finish this test
+    
+    @unittest.skip("TODO")
+    def test_run(self):
+        pass
 
 if __name__ == '__main__':
     unittest.main()
