@@ -42,8 +42,8 @@ class CRScraper:
 
     def save_file(self):
         """Writes content to file"""
-        log.info("Writing to file: " + self.filename)
-        with open(self.filename, "w") as file:
+        log.info("Writing to file: " + self.output_file)
+        with open(self.output_file, "w") as file:
             file.write(self.content)
 
     def run(self):
@@ -87,7 +87,7 @@ class CRWriter:
         """Scrapes and saves Congressional Record for complete time period"""
 
         # Zip links and filenames and loop through
-        for l, f in zip(self.create_links(), self.create_filenames):
+        for l, f in zip(self.create_links(), self.create_filenames()):
             # Create scraper
             try:
                 log.info("Retrieving content for " + l)
