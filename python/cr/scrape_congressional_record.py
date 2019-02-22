@@ -12,9 +12,12 @@ from bs4 import BeautifulSoup
 
 log = logging.getLogger(__name__)
 
+
 class NoCRContentException(Exception):
     """Raised when there is no CR content at the given url"""
+
     pass
+
 
 class CRScraper:
     """Class for scraping one day's worth of content from the Congressional Record"""
@@ -28,17 +31,21 @@ class CRScraper:
     def get_links(self):
         """Gets links for one day of Congressional Record"""
         soup = BeautifulSoup(requests.get(self.url).content)
-        links = [link for link in soup.find_all('td')]
+        links = [link for link in soup.find_all("td")]
         # Only even numbered indexes have the needed links
-        relevant_links = [links[i].a.get('href') for i in range(len(links)) if i % 2 == 0]
+        relevant_links = [
+            links[i].a.get("href") for i in range(len(links)) if i % 2 == 0
+        ]
         # Create full links if necessary
-        return([self.link_prefix + l if re.match("^/", l) else l for l in relevant_links])
+        return [
+            self.link_prefix + l if re.match("^/", l) else l for l in relevant_links
+        ]
 
     def scrape_page(self, url):
         """Scrapes one section of the Congressional Record"""
         soup = BeautifulSoup(requests.get(url).content)
-        text = soup.find('pre', class_ = 'styled').contents
-        return(''.join(str(text)))
+        text = soup.find("pre", class_="styled").contents
+        return "".join(str(text))
 
     def save_file(self):
         """Writes content to file"""
@@ -54,13 +61,13 @@ class CRScraper:
         else:
             self.content = " ".join([self.scrape_page(url) for url in links])
 
+
 class CRWriter:
     """Class for scraping and saving a complete time period of the Congressional Record"""
+
     max_pause = 4
     url_prefix = "https://www.congress.gov/congressional-record/"
-    url_suffix_dict = {
-            "s": "/senate-section",
-            "h": "/house-section"}
+    url_suffix_dict = {"s": "/senate-section", "h": "/house-section"}
 
     def __init__(self, house, directory, startdate, enddate):
         self.house = house.upper()
@@ -77,11 +84,17 @@ class CRWriter:
 
     def create_links(self):
         """Creates list of CR links for each day in the date range"""
-        return([self.url_prefix + d.strftime("%Y/%m/%d") + self.url_suffix for d in self.daterange()])
+        return [
+            self.url_prefix + d.strftime("%Y/%m/%d") + self.url_suffix
+            for d in self.daterange()
+        ]
 
     def create_filenames(self):
         """Creates list of filenames for each day in the date range"""
-        return([self.output_directory + "/" + self.house + str(d) + ".txt" for d in self.daterange()])
+        return [
+            self.output_directory + "/" + self.house + str(d) + ".txt"
+            for d in self.daterange()
+        ]
 
     def run(self):
         """Scrapes and saves Congressional Record for complete time period"""
@@ -100,12 +113,16 @@ class CRWriter:
 
             s.save_file()
 
+
 def main(args):
     CRWriter(args[0], args[1], args[2], args[3]).run()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     if len(sys.argv) != 5:
-        print("Incorrect number of arguments. Program requires 4: house of congress (s/h), directory for saving transcripts, startdate (Y-m-d) and enddate (Y-m-d)")
+        print(
+            "Incorrect number of arguments. Program requires 4: house of congress (s/h), directory for saving transcripts, startdate (Y-m-d) and enddate (Y-m-d)"
+        )
         sys.exit()
     else:
         main(sys.argv[1:])
