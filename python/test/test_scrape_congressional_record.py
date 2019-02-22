@@ -11,20 +11,32 @@ import requests_mock
 
 from cr.scrape_congressional_record import CRWriter, CRScraper, NoCRContentException
 
+# Constants
 startdate = "01-01-2010"
 enddate = "01-02-2010"
+
+# Directories
 tmp_directory = "temp"
+resources_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources")
+
+"""The scraper goes through two levels of pages: 
+    1. Day level pages, where it gets links to the actual content
+    2. Actual content pages, where it first pulls the entire html and then just pulls the needed content. In the test example, only 1/2 (not 1/1) has content to pull"""
+# Day level pages - urls plus files with the content from those pages used for tests
 day_level_urls = ["https://www.congress.gov/congressional-record/2010/01/01/senate-section",
         "https://www.congress.gov/congressional-record/2010/01/02/senate-section"]
-filenames = ["S2010-01-01.txt", "S2010-01-02.txt"]
+day_level_files = ["test_page_20100101.txt", "test_page_20100102.txt"]
+
+# Filenames used for saving output
+output_filenames = ["S2010-01-01.txt", "S2010-01-02.txt"]
+
+# Record level information for 1/2, including urls + content from those pages used for tests
 expected_url_prefix = "https://www.congress.gov/congressional-record/2010/01/02/senate-section/article/S1-"
-resources_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources")
 expected_urls = [expected_url_prefix + str(n) for n in range(1, 4)]
+
 record_level_files = ["test_record1.txt", "test_record2.txt", "test_record3.txt"]
 expected_filtered_content_file = "test_page_filtered_content_total.txt"
 expected_content_file1 = "test_page_content1_text.txt" 
-
-day_level_files = ["test_page_20100101.txt", "test_page_20100102.txt"]
 
 def mock_text_helper(mocker, url, filename):
     with open(filename) as f:
@@ -36,8 +48,12 @@ class CRScraperTest(unittest.TestCase):
         if os.path.isdir(tmp_directory):
             shutil.rmtree(tmp_directory)
         os.mkdir(tmp_directory)
-        self.test_scraper = CRScraper(day_level_urls[1], os.path.join(tmp_directory, filenames[1]))
-        self.test_exception = CRScraper(day_level_urls[0], os.path.join(tmp_directory, filenames[0]))
+        
+        # Test of scraper with actual content
+        self.test_scraper = CRScraper(day_level_urls[1], os.path.join(tmp_directory, output_filenames[1]))
+
+        # Test of scraper with no content
+        self.test_exception = CRScraper(day_level_urls[0], os.path.join(tmp_directory, output_filenames[0]))
 
     def tearDown(self):
         if os.path.isdir(tmp_directory):
@@ -84,7 +100,7 @@ class CRScraperTest(unittest.TestCase):
             mock_text_helper(mocker, u, os.path.join(resources_dir, f))
         self.test_scraper.run()
         self.test_scraper.save_file()
-        self.assertTrue(os.path.isfile(os.path.join(tmp_directory, filenames[1])))
+        self.assertTrue(os.path.isfile(os.path.join(tmp_directory, output_filenames[1])))
         
 
 class CRWriterTest(unittest.TestCase):
@@ -110,8 +126,8 @@ class CRWriterTest(unittest.TestCase):
         self.assertEqual(self.test_writer_house.create_links(), [re.sub("senate", "house", link) for link in day_level_urls])
 
     def test_create_filenames(self):
-        self.assertEqual(self.test_writer.create_filenames(), ["temp/" + f for f in filenames])
-        self.assertEqual(self.test_writer_house.create_filenames(), ["temp/" + re.sub("S", "H", f) for f in filenames])
+        self.assertEqual(self.test_writer.create_filenames(), ["temp/" + f for f in output_filenames])
+        self.assertEqual(self.test_writer_house.create_filenames(), ["temp/" + re.sub("S", "H", f) for f in output_filenames])
     
     @requests_mock.Mocker()
     def test_run(self, mocker):
@@ -124,13 +140,13 @@ class CRWriterTest(unittest.TestCase):
             mock_text_helper(mocker, u, os.path.join(resources_dir, f))
         self.test_writer.run()
 
-        with open(os.path.join(tmp_directory, filenames[1])) as f:
+        with open(os.path.join(tmp_directory, output_filenames[1])) as f:
             test_output = f.read()
         self.assertIn(test_output, expected_output)
 
 
         # Expect no file for 1/1
-        self.assertFalse(os.path.isfile(os.path.join(tmp_directory, filenames[0])))
+        self.assertFalse(os.path.isfile(os.path.join(tmp_directory, output_filenames[0])))
         
 
 if __name__ == '__main__':
