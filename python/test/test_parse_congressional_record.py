@@ -15,7 +15,12 @@ class CRParserTest(unittest.TestCase):
 
     @unittest.skip("TODO")
     def test_clean_file(self):
-        pass
+        test_input = "the quick brown fox"
+        test_output_replace = clean_file(test_input, ["o", "x"], ["a", "z"])
+        test_output_no_replace = clean_file(test_input, ["o", "x"])
+
+        self.assertEqual(test_output_replace, "the quick brawn faz")
+        self.assertEqual(test_output_no_replace, "the quick brwn f")
 
     @unittest.skip("TODO")
     def test_split_on_page_headers(self):

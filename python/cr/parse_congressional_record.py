@@ -8,8 +8,20 @@ def check_true(x):
     return x.lower() in ("true", "yes", "t", "1")
 
 def clean_file(file_text, strings_to_replace, replacements = None):
-    """Cleans text by replacing strings_to_replace with replacements or with '' if replacements is not given"""
-    pass
+    """Cleans text by replacing strings_to_replace with replacements or with '' if replacements is not given
+    
+    : param file_text: string of text to clean
+    : param strings_to_remove: list of strings to replace
+    : param replacements: optional list of strings to replace; if not given, replace with '' 
+    """
+
+    if not replacements:
+       replacements = [""] * len(strings_to_replace)
+    
+    for old, replace in zip(strings_to_replace, replacements):
+        file_text.replace(old, replace)
+
+    return(file_text)
 
 class CRParser():
     def __init__(self, file_path):
