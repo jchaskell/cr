@@ -25,15 +25,15 @@ def clean_file(file_text, strings_to_replace, replacements = None):
 
 class CRParser():
     def __init__(self, file_path):
-    """Define a congressional record parser"""
+        """Define a congressional record parser"""
 
     # Initialize 2 dictionaries for speeches and 'other' content
     # Nested dictionary of title -> speaker -> speeches
-    self.speeches = {}
-    self.other = {}
+        self.speeches = {}
+        self.other = {}
 
-    with open(file_path) as f:
-        self.text = f.read()
+        with open(file_path) as f:
+            self.text = f.read()
 
     def split_on_page_headers(self):
         """Splits pages and pulls out titles
