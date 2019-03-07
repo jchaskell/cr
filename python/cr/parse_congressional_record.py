@@ -22,6 +22,8 @@ def clean_file(file_text, strings_to_replace, replacements = None):
 
     return(file_text)
 
+PAGE_SPLIT_REGEX = "\[[\'\"]\\n\[[\'\"], <a href=[\'\"]/congressional-record/volume-\d+/senate|house-section/page/[SH]\d+[\'\"]>Page [HS][0-9-]+</a>, u?[\'\"]\]\\nFrom the Congressional Record Online through the Government Publishing Office \[www\.gpo\.gov\][\'\"]\]"
+
 class CRParser():
     def __init__(self, file_path):
         """Define a congressional record parser"""
@@ -37,7 +39,27 @@ class CRParser():
     def split_on_page_headers(self):
         """Splits pages and pulls out titles
         Updates self.speeches so that it is a dictionary of titles to text"""
+
+        # Matches all caps title and takes out spaces and \n surrounding it
+        title_clean_up = "$\s*[\\n]*\s*([A-Z0-9 \.,\-!\?]{2,})\s+[\\n]+\s+"
+        split_pages = self.test.split(PAGE_SPLIT_REGEX)
+        for page in split_pages:
+            
+            # Capture title if it exists
+            if not re.match(title_clean_up, page):
+                title = ""
+            else: 
+                title = re.match(title_clean_up, page).group(1)
         
+            # Remove title from page
+            text = re.sub(title_clean_up, "", page)
+
+            # Add to dictionary - need to deal with key already existing
+            if title in self.speeches:
+                self.speeches[title].append(page)
+            else:
+                self.speeches[title] = [page]
+            
 
     def pull_out_votes(self, vote_title = "Vote"):
         """Pulls out votes which will then be put in the 'other' file
