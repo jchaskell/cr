@@ -17,9 +17,8 @@ def clean_file(file_text, strings_to_replace, replacements = None):
 
     if not replacements:
        replacements = [""] * len(strings_to_replace)
-    
     for old, replace in zip(strings_to_replace, replacements):
-        file_text.replace(old, replace)
+        file_text = file_text.replace(old, replace)
 
     return(file_text)
 
@@ -38,7 +37,7 @@ class CRParser():
     def split_on_page_headers(self):
         """Splits pages and pulls out titles
         Updates self.speeches so that it is a dictionary of titles to text"""
-        pass
+        
 
     def pull_out_votes(self, vote_title = "Vote"):
         """Pulls out votes which will then be put in the 'other' file
