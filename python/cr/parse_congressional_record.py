@@ -17,9 +17,12 @@ def clean_file(file_text, strings_to_replace, replacements = None):
 
     if not replacements:
        replacements = [""] * len(strings_to_replace)
-    
+    print(replacements)
+    print(strings_to_replace)
+    print(file_text)
     for old, replace in zip(strings_to_replace, replacements):
-        file_text.replace(old, replace)
+        file_text = file_text.replace(old, replace)
+        print(file_text)
 
     return(file_text)
 
