@@ -22,44 +22,47 @@ def clean_file(file_text, strings_to_replace, replacements = None):
 
     return(file_text)
 
-PAGE_SPLIT_REGEX = "\[[\'\"]\\n\[[\'\"], <a href=[\'\"]/congressional-record/volume-\d+/senate|house-section/page/[SH]\d+[\'\"]>Page [HS][0-9-]+</a>, u?[\'\"]\]\\nFrom the Congressional Record Online through the Government Publishing Office \[www\.gpo\.gov\][\'\"]\]"
+PAGE_BREAK_INDICATOR = "\[[\'\"]\\n\[[\'\"], <a href=[\'\"]/congressional-record/volume-\d+/senate|house-section/page/[SH]\d+[\'\"]>Page [HS][0-9-]+</a>, u?[\'\"]\]\\nFrom the Congressional Record Online through the Government Publishing Office \[www\.gpo\.gov\][\'\"]\]"
+
+TITLE_INDICATOR = "$\s*[\\n]*\s*([A-Z0-9 \.,\-!\?]{2,})\s+[\\n]+\s+"
 
 class CRParser():
     def __init__(self, file_path):
         """Define a congressional record parser"""
 
-    # Initialize 2 dictionaries for speeches and 'other' content
     # Nested dictionary of title -> speaker -> speeches
         self.speeches = {}
         self.other = {}
 
         with open(file_path) as f:
-            self.text = f.read()
+            self.congressional_record_text = f.read()
 
-    def split_on_page_headers(self):
-        """Splits pages and pulls out titles
-        Updates self.speeches so that it is a dictionary of titles to text"""
+    def split_pages(self):
+        """Split pages based on text that indicates page split"""
+        self.congressional_record_pages = self.congressional_record_text.split(PAGE_BREAK_INDICATOR))
 
-        # Matches all caps title and takes out spaces and \n surrounding it
-        title_clean_up = "$\s*[\\n]*\s*([A-Z0-9 \.,\-!\?]{2,})\s+[\\n]+\s+"
-        split_pages = self.test.split(PAGE_SPLIT_REGEX)
-        for page in split_pages:
-            
-            # Capture title if it exists
-            if not re.match(title_clean_up, page):
-                title = ""
-            else: 
-                title = re.match(title_clean_up, page).group(1)
-        
-            # Remove title from page
-            text = re.sub(title_clean_up, "", page)
+    def capture_titles(self, page):
+        if not re.match(TITLE_INDICATOR, page):
+            title = ""
+        else:
+            title = re.match(TITLE_INDICATOR).group(1)
+        return(title)
 
-            # Add to dictionary - need to deal with key already existing
-            if title in self.speeches:
-                self.speeches[title].append(page)
-            else:
-                self.speeches[title] = [page]
-            
+    def remove_title(self, page):
+        return(re.sub(TITLE_INDICATOR, "", page))
+
+    def add_speech_to_collection(title, speech):
+        if title in self.speeches:
+            self.speeches[title].append(speech)
+        else:
+            self.speeches[title] = [speech]
+
+    def add_titled_speeches_to_collection(self):
+        """Add speeches to collection, pulling out title if relevant"""
+        for page in self.congressional_record_pages:
+            title = capture_titles(page)
+            page_text = remove_title(page)
+            self.speeches = add_speech_to_collection(title, page_text)
 
     def pull_out_votes(self, vote_title = "Vote"):
         """Pulls out votes which will then be put in the 'other' file
