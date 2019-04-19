@@ -9,6 +9,22 @@ from cr.parse_congressional_record import check_true, clean_file, CRParser
 
 test_file = "test_page_filtered_content_total.txt"
 resources_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources")
+
+expected_titles = ["", 
+                   "APPOINTMENT OF ACTING PRESIDENT PRO TEMPORE",
+                   "APPOINTMENT OF ACTING PRESIDENT PRO TEMPORE",
+                   "ADJOURNMENT UNTIL 11 A.M., TUESDAY, JANUARY 19, 2010"]
+
+expected_speakers = ["",
+                     "The PRESIDING OFFICER",
+                     "Mr. McCONNELL",
+                     "The ACTING PRESIDENT pro tempore"]
+
+expected_speeches = ["Senate  The 2nd day of January being the day prescribed by House Joint Resolution 62 for the meeting of the 2d session of the 111th Congress, the Senate assembled in its Chamber at the Capitol at 12 and 10 seconds p.m., and was called to order by the Honorable Mark R. Warner, a Senator from the Commonwealth of Virginia", 
+                     "The clerk will please read a communication to the Senate from the President pro tempore (Mr. Byrd).  The legislative clerk read the following letter:", 
+                     "Zippity doo dah",
+                     "Under the previous order, the Senate stands adjourned until 11 a.m. on Tuesday, January 19, 2010.  Thereupon, the Senate, at 12 and 43 seconds p.m., adjourned until Tuesday, January 19, 2010, at 11 a.m."]
+
 class CRParserTest(unittest.TestCase):
     def setUp(self):
         test_file_path = os.path.join(resources_dir, test_file)
@@ -27,13 +43,10 @@ class CRParserTest(unittest.TestCase):
         self.assertEqual(test_output_replace, "the quick brawn faz")
         self.assertEqual(test_output_no_replace, "the quick brwn f")
 
+    def test_
     @unittest.skip("TODO: Write function")
     def test_split_on_page_headers(self):
         created_dictionary = test_parser.split_on_page_headers().speeches
-
-        expected_dictionary = {"": "\n\nSenate\n\n  The 2nd day of January being the day prescribed by House Joint \nResolution 62 for the meeting of the 2d session of the 111th Congress, \nthe Senate assembled in its Chamber at the Capitol at 12 and 10 seconds \np.m., and was called to order by the Honorable Mark R. Warner, a \nSenator from the Commonwealth of Virginia.\n\n                          ____________________\n\n\n']",
-                               "APPOINTMENT OF ACTING PRESIDENT PRO TEMPORE": "The PRESIDING OFFICER. The clerk will please read a communication to \nthe Senate from the President pro tempore (Mr. Byrd).\n  The legislative clerk read the following letter:\n']",
-                               "ADJOURNMENT UNTIL 11 A.M., TUESDAY, JANUARY 19, 2010": "The ACTING PRESIDENT pro tempore. Under the previous order, the \nSenate stands adjourned until 11 a.m. on Tuesday, January 19, 2010.\n  Thereupon, the Senate, at 12 and 43 seconds p.m., adjourned until \nTuesday, January 19, 2010, at 11 a.m.\n\n\n']"}
 
         self.assertEqual(created_dictionary, expected_dictionary)
 

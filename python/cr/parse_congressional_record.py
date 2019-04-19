@@ -63,6 +63,7 @@ class CRParser():
             page_text = remove_title(page)
             self.speeches = add_speech_to_collection(title, page_text)
 
+    # Let's not pull out votes. Let's do that in a deeper parsing script.
     def pull_out_votes(self, vote_title = "Vote"):
         """Pulls out votes which will then be put in the 'other' file
         Updates self.other so that it includes votes with vote_title as the title
