@@ -1,5 +1,6 @@
 """Takes one file of Congressional Record scraping output and parses it into speeches"""
 
+import csv
 import os
 import re
 import sys
@@ -24,7 +25,7 @@ def clean_file(file_text, strings_to_replace, replacements = None):
 
 PAGE_BREAK_INDICATOR = "\[[\'\"]\\n\[[\'\"], <a href=[\'\"]/congressional-record/volume-\d+/senate|house-section/page/[SH]\d+[\'\"]>Page [HS][0-9-]+</a>, u?[\'\"]\]\\nFrom the Congressional Record Online through the Government Publishing Office \[www\.gpo\.gov\][\'\"]\]"
 
-TITLE_INDICATOR = "$\s*[\\n]*\s*([A-Z0-9 \.,\-!\?]{2,})\s+[\\n]+\s+"
+TITLE_INDICATOR = "^\s*[\\n]*\s*([A-Z0-9 \.,\-!\?]{2,})\s+[\\n]+\s+"
 
 class CRParser():
     def __init__(self, file_path):
@@ -38,8 +39,7 @@ class CRParser():
             self.congressional_record_text = f.read()
 
     def split_pages(self):
-        """Split pages based on text that indicates page split"""
-        self.congressional_record_pages = self.congressional_record_text.split(PAGE_BREAK_INDICATOR))
+        self.congressional_record_pages = self.congressional_record_text.split(PAGE_BREAK_INDICATOR)
 
     def capture_titles(self, page):
         if not re.match(TITLE_INDICATOR, page):
@@ -86,18 +86,28 @@ class CRParser():
         # Also need to clean up extra spaces and \n
         pass
 
+    # Run function for processing 1 CR file
     def process_file(self):
         """Does complete processing of 1 Congressional Record file"""
-        pass
+        split_pages()
+        add_titles_speeches_to_collection()
 
     def write_file(self, append, speeches_path, other_path = None):
         """Writes to files, either appending to existing files or writing to new ones"""
         pass
 
+def writer_helper(speeches, text_file_path = "test.csv"):
+    with open(text_file_path, 'w') as f:
+        writer = csv.DictWriter(f, ["title", "speech"])
+        writer.writeheader()
+        for speech in speeches:
+            writer.writerow(speech)
+
 def main(file_path, append, output_file1, output_file2):
     parser = CRParser(file_path)
     parser.process_file()
-    parser.write_file(append, output_file1, output_file2)
+    #parser.write_file(append, output_file1, output_file2)
+    writer_helper(parser.speeches)    
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
