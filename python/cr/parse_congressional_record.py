@@ -20,7 +20,6 @@ def clean_file(file_text, strings_to_replace, replacements = None):
        replacements = [""] * len(strings_to_replace)
     for old, replace in zip(strings_to_replace, replacements):
         file_text = file_text.replace(old, replace)
-
     return(file_text)
 
 PAGE_BREAK_INDICATOR = "\[[\'\"]\\n\[[\'\"], <a href=[\'\"]/congressional-record/volume-\d+/senate|house-section/page/[SH]\d+[\'\"]>Page [HS][0-9-]+</a>, u?[\'\"]\]\\nFrom the Congressional Record Online through the Government Publishing Office \[www\.gpo\.gov\][\'\"]\]"
