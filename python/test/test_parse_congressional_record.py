@@ -43,7 +43,6 @@ class CRParserTest(unittest.TestCase):
         self.assertEqual(test_output_replace, "the quick brawn faz")
         self.assertEqual(test_output_no_replace, "the quick brwn f")
 
-    def test_
     @unittest.skip("TODO: Write function")
     def test_split_on_page_headers(self):
         created_dictionary = test_parser.split_on_page_headers().speeches
