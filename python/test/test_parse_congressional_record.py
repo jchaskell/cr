@@ -24,12 +24,13 @@ expected_speeches = ["Senate  The 2nd day of January being the day prescribed by
                      "The clerk will please read a communication to the Senate from the President pro tempore (Mr. Byrd).  The legislative clerk read the following letter:", 
                      "Zippity doo dah",
                      "Under the previous order, the Senate stands adjourned until 11 a.m. on Tuesday, January 19, 2010.  Thereupon, the Senate, at 12 and 43 seconds p.m., adjourned until Tuesday, January 19, 2010, at 11 a.m."]
+speech_to_page_mapping = [1, 2, 2, 3]
 
 class CRParserTest(unittest.TestCase):
     def setUp(self):
         test_file_path = os.path.join(resources_dir, test_file)
-        test_parser = CRParser(test_file_path)        
-    
+        self.test_parser = CRParser(test_file_path)
+
     def test_check_true(self):
         self.assertTrue(check_true("1"))
         self.assertTrue(check_true("True"))
@@ -42,6 +43,15 @@ class CRParserTest(unittest.TestCase):
 
         self.assertEqual(test_output_replace, "the quick brawn faz")
         self.assertEqual(test_output_no_replace, "the quick brwn f")
+
+    def test_split_pages(self):
+        # Speech, title, speaker should all be in the page listed in speech_to_page_mapping
+        self.test_parser.split_pages()
+        for index, x in enumerate(speech_to_page_mapping):
+            self.assertIn(expected_speeches[index], re.sub('\\\\n', '', self.test_parser.congressional_record_pages[x]))
+
+            self.assertIn(expected_titles[index], self.test_parser.congressional_record_pages[x])
+            self.assertIn(expected_speakers[index], self.test_parser.congressional_record_pages[x])
 
     @unittest.skip("TODO: Write function")
     def test_split_on_page_headers(self):

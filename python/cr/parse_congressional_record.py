@@ -22,9 +22,9 @@ def clean_file(file_text, strings_to_replace, replacements = None):
         file_text = file_text.replace(old, replace)
     return(file_text)
 
-PAGE_BREAK_INDICATOR = "\[[\'\"]\\n\[[\'\"], <a href=[\'\"]/congressional-record/volume-\d+/senate|house-section/page/[SH]\d+[\'\"]>Page [HS][0-9-]+</a>, u?[\'\"]\]\\nFrom the Congressional Record Online through the Government Publishing Office \[www\.gpo\.gov\][\'\"]\]"
+PAGE_BREAK_INDICATOR = "\[[\'\"]\\\\n\[[\'\"], <a href=[\'\"]/congressional-record/volume-\d+/(?:senate|house)-section/page/[SH]\d+[\'\"]>Page [HS][0-9-]+</a>, u?[\'\"]\]\\\\nFrom the Congressional Record Online through the Government Publishing Office \[www\.gpo\.gov\]"
 
-TITLE_INDICATOR = "^\s*[\\n]*\s*([A-Z0-9 \.,\-!\?]{2,})\s+[\\n]+\s+"
+TITLE_INDICATOR = "^\s*[\\\\n]*\s*([A-Z0-9 \.,\-!\?]{2,})\s+[\\\\n]+\s+"
 
 class CRParser():
     def __init__(self, file_path):
@@ -38,12 +38,13 @@ class CRParser():
             self.congressional_record_text = f.read()
 
     def split_pages(self):
-        self.congressional_record_pages = self.congressional_record_text.split(PAGE_BREAK_INDICATOR)
+        self.congressional_record_pages = re.split(PAGE_BREAK_INDICATOR, self.congressional_record_text)
 
-    def capture_titles(self, page):
+    def capture_title(self, page):
         if not re.match(TITLE_INDICATOR, page):
             title = ""
         else:
+            print(re.match(TITLE_INDICATOR).group(1))
             title = re.match(TITLE_INDICATOR).group(1)
         return(title)
 
@@ -59,7 +60,7 @@ class CRParser():
     def add_titled_speeches_to_collection(self):
         """Add speeches to collection, pulling out title if relevant"""
         for page in self.congressional_record_pages:
-            title = capture_titles(page)
+            title = capture_title(page)
             page_text = remove_title(page)
             self.speeches = add_speech_to_collection(title, page_text)
 
