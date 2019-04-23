@@ -5,7 +5,7 @@ import re
 import sys
 import unittest
 
-from cr.parse_congressional_record import check_true, clean_file, CRParser
+from cr.parse_congressional_record import check_true, clean_file, CRParser, TITLE_INDICATOR
 
 test_file = "test_page_filtered_content_total.txt"
 resources_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources")
@@ -52,6 +52,14 @@ class CRParserTest(unittest.TestCase):
 
             self.assertIn(expected_titles[index], self.test_parser.congressional_record_pages[x])
             self.assertIn(expected_speakers[index], self.test_parser.congressional_record_pages[x])
+
+    def test_capture_title(self):
+        self.test_parser.split_pages()
+        no_title_expected = self.test_parser.capture_title(self.test_parser.congressional_record_pages[1])
+        title_expected = self.test_parser.capture_title(self.test_parser.congressional_record_pages[2])
+
+        self.assertEqual(no_title_expected, "")
+        self.assertEqual(title_expected, expected_titles[1])
 
     @unittest.skip("TODO: Write function")
     def test_split_on_page_headers(self):

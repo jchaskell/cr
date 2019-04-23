@@ -24,7 +24,7 @@ def clean_file(file_text, strings_to_replace, replacements = None):
 
 PAGE_BREAK_INDICATOR = "\[[\'\"]\\\\n\[[\'\"], <a href=[\'\"]/congressional-record/volume-\d+/(?:senate|house)-section/page/[SH]\d+[\'\"]>Page [HS][0-9-]+</a>, u?[\'\"]\]\\\\nFrom the Congressional Record Online through the Government Publishing Office \[www\.gpo\.gov\]"
 
-TITLE_INDICATOR = "^\s*[\\\\n]*\s*([A-Z0-9 \.,\-!\?]{2,})\s+[\\\\n]+\s+"
+TITLE_INDICATOR = "^[\\\\n\s]*([A-Z0-9 \.,\-!\?]{2,})[\\n\s]*"
 
 class CRParser():
     def __init__(self, file_path):
@@ -44,8 +44,7 @@ class CRParser():
         if not re.match(TITLE_INDICATOR, page):
             title = ""
         else:
-            print(re.match(TITLE_INDICATOR).group(1))
-            title = re.match(TITLE_INDICATOR).group(1)
+            title = re.match(TITLE_INDICATOR, page).group(1)
         return(title)
 
     def remove_title(self, page):
