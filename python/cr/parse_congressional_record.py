@@ -50,7 +50,7 @@ class CRParser():
     def remove_title(self, page):
         return(re.sub(TITLE_INDICATOR, "", page))
 
-    def add_speech_to_collection(title, speech):
+    def add_speech_to_collection(self, title, speech):
         if title in self.speeches:
             self.speeches[title].append(speech)
         else:

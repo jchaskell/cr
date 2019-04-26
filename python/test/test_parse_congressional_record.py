@@ -71,11 +71,20 @@ class CRParserTest(unittest.TestCase):
         self.assertEqual(page_with_no_title_before, page_with_no_title_after)
         self.assertFalse(re.search("[A-Z]{2,}", page_with_no_title_after))
 
-    @unittest.skip("TODO: Write function")
-    def test_split_on_page_headers(self):
-        created_dictionary = test_parser.split_on_page_headers().speeches
+    def test_add_speech_to_collection(self):
+        self.test_parser.speeches["National Security"] = ["It is important."]
+        expected_speeches = {
+            "National Security": ["It is important.", "We spend too much."],
+            "Environment": ["Nah, who cares."]
+        }
 
-        self.assertEqual(created_dictionary, expected_dictionary)
+        self.test_parser.add_speech_to_collection("National Security", "We spend too much.")
+        self.test_parser.add_speech_to_collection("Environment", "Nah, who cares.")
+        self.assertEqual(expected_speeches, self.test_parser.speeches)
+
+    @unittest.skip("TODO: Write function")
+    def test_add_titled_speeches_to_collect(self):
+        pass    
 
     @unittest.skip("TODO")
     def test_pull_out_votes(self):
