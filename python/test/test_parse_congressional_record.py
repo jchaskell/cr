@@ -61,6 +61,16 @@ class CRParserTest(unittest.TestCase):
         self.assertEqual(no_title_expected, "")
         self.assertEqual(title_expected, expected_titles[1])
 
+    def test_remove_title(self):
+        self.test_parser.split_pages()
+        page_with_no_title_before = self.test_parser.congressional_record_pages[1]
+        page_with_title_before = self.test_parser.congressional_record_pages[2]
+        page_with_no_title_after = self.test_parser.remove_title(page_with_no_title_before)
+        page_with_title_after = self.test_parser.remove_title(page_with_title_before)
+
+        self.assertEqual(page_with_no_title_before, page_with_no_title_after)
+        self.assertFalse(re.search("[A-Z]{2,}", page_with_no_title_after))
+
     @unittest.skip("TODO: Write function")
     def test_split_on_page_headers(self):
         created_dictionary = test_parser.split_on_page_headers().speeches
