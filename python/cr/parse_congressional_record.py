@@ -1,4 +1,4 @@
-"""Takes one file of Congressional Record scraping output and parses it into speeches"""
+"i""Takes one file of Congressional Record scraping output and parses it into speeches"""
 
 import csv
 import os
@@ -51,17 +51,24 @@ class CRParser():
         return(re.sub(TITLE_INDICATOR, "", page))
 
     def add_speech_to_collection(self, title, speech):
-        if title in self.speeches:
+        if self.speeches and title in self.speeches:
             self.speeches[title].append(speech)
         else:
             self.speeches[title] = [speech]
 
     def add_titled_speeches_to_collection(self):
         """Add speeches to collection, pulling out title if relevant"""
+        self.split_pages()
+        
         for page in self.congressional_record_pages:
-            title = capture_title(page)
-            page_text = remove_title(page)
-            self.speeches = add_speech_to_collection(title, page_text)
+            title = self.capture_title(page)
+            # Don't bother with empty text
+            if not re.match("^\s+$"):
+                if title:
+                    page_text = self.remove_title(page)
+                    self.add_speech_to_collection(title, page_text)
+                else:
+                    self.add_speech_to_collection("", page) 
 
     # Let's not pull out votes. Let's do that in a deeper parsing script.
     def pull_out_votes(self, vote_title = "Vote"):

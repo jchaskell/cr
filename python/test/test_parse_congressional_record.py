@@ -12,19 +12,15 @@ resources_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resour
 
 expected_titles = ["", 
                    "APPOINTMENT OF ACTING PRESIDENT PRO TEMPORE",
-                   "APPOINTMENT OF ACTING PRESIDENT PRO TEMPORE",
                    "ADJOURNMENT UNTIL 11 A.M., TUESDAY, JANUARY 19, 2010"]
 
-expected_speakers = ["",
-                     "The PRESIDING OFFICER",
-                     "Mr. McCONNELL",
-                     "The ACTING PRESIDENT pro tempore"]
+expected_speakers = [[""],
+                     ["The PRESIDING OFFICER", "Mr. McCONNELL"],
+                     ["The ACTING PRESIDENT pro tempore"]]
 
-expected_speeches = ["Senate  The 2nd day of January being the day prescribed by House Joint Resolution 62 for the meeting of the 2d session of the 111th Congress, the Senate assembled in its Chamber at the Capitol at 12 and 10 seconds p.m., and was called to order by the Honorable Mark R. Warner, a Senator from the Commonwealth of Virginia", 
-                     "The clerk will please read a communication to the Senate from the President pro tempore (Mr. Byrd).  The legislative clerk read the following letter:", 
-                     "Zippity doo dah",
-                     "Under the previous order, the Senate stands adjourned until 11 a.m. on Tuesday, January 19, 2010.  Thereupon, the Senate, at 12 and 43 seconds p.m., adjourned until Tuesday, January 19, 2010, at 11 a.m."]
-speech_to_page_mapping = [1, 2, 2, 3]
+expected_speeches = [["Senate  The 2nd day of January being the day prescribed by House Joint Resolution 62 for the meeting of the 2d session of the 111th Congress, the Senate assembled in its Chamber at the Capitol at 12 and 10 seconds p.m., and was called to order by the Honorable Mark R. Warner, a Senator from the Commonwealth of Virginia"], 
+                     ["The clerk will please read a communication to the Senate from the President pro tempore (Mr. Byrd).  The legislative clerk read the following letter:", "Zippity doo dah"],
+                     ["Under the previous order, the Senate stands adjourned until 11 a.m. on Tuesday, January 19, 2010.  Thereupon, the Senate, at 12 and 43 seconds p.m., adjourned until Tuesday, January 19, 2010, at 11 a.m."]]
 
 class CRParserTest(unittest.TestCase):
     def setUp(self):
@@ -47,24 +43,29 @@ class CRParserTest(unittest.TestCase):
     def test_split_pages(self):
         # Speech, title, speaker should all be in the page listed in speech_to_page_mapping
         self.test_parser.split_pages()
-        for index, x in enumerate(speech_to_page_mapping):
-            self.assertIn(expected_speeches[index], re.sub('\\\\n', '', self.test_parser.congressional_record_pages[x]))
+        test_pages = self.test_parser.congressional_record_pages
+        for i, page in enumerate(test_pages):
+            # First speech is empty
+            if page == '':
+                continue
+            for speech in expected_speeches[i - 1]:
 
-            self.assertIn(expected_titles[index], self.test_parser.congressional_record_pages[x])
-            self.assertIn(expected_speakers[index], self.test_parser.congressional_record_pages[x])
-
+                self.assertIn(speech, re.sub('\\\\n', '', page))
+            
     def test_capture_title(self):
         self.test_parser.split_pages()
-        no_title_expected = self.test_parser.capture_title(self.test_parser.congressional_record_pages[1])
-        title_expected = self.test_parser.capture_title(self.test_parser.congressional_record_pages[2])
+        test_pages = self.test_parser.congressional_record_pages
+        no_title_expected = self.test_parser.capture_title(test_pages[1])
+        title_expected = self.test_parser.capture_title(test_pages[2])
 
         self.assertEqual(no_title_expected, "")
         self.assertEqual(title_expected, expected_titles[1])
 
     def test_remove_title(self):
         self.test_parser.split_pages()
-        page_with_no_title_before = self.test_parser.congressional_record_pages[1]
-        page_with_title_before = self.test_parser.congressional_record_pages[2]
+        test_pages = self.test_parser.congressional_record_pages
+        page_with_no_title_before = test_pages[1]
+        page_with_title_before = test_pages[2]
         page_with_no_title_after = self.test_parser.remove_title(page_with_no_title_before)
         page_with_title_after = self.test_parser.remove_title(page_with_title_before)
 
@@ -82,9 +83,17 @@ class CRParserTest(unittest.TestCase):
         self.test_parser.add_speech_to_collection("Environment", "Nah, who cares.")
         self.assertEqual(expected_speeches, self.test_parser.speeches)
 
-    @unittest.skip("TODO: Write function")
+    @unittest.skip("Todo")
     def test_add_titled_speeches_to_collect(self):
-        pass    
+        self.test_parser.add_titled_speeches_to_collection()
+        test_output = self.test_parser.speeches
+
+        self.assertEqual(set(expected_titles), set(test_output.keys()))
+        # Loop through and make sure speeches go with correct titles
+        for i, speeches in enumerate(expected_speeches):
+            test_page = test_output[expected_titles[i]]
+            for x, y in zip(speeches, test_page):
+                self.assertIn(x, re.sub('\\\\n', '', y))
 
     @unittest.skip("TODO")
     def test_pull_out_votes(self):
