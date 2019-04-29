@@ -25,6 +25,7 @@ def clean_file(file_text, strings_to_replace, replacements = None):
 PAGE_BREAK_INDICATOR = "\[[\'\"]\\\\n\[[\'\"], <a href=[\'\"]/congressional-record/volume-\d+/(?:senate|house)-section/page/[SH]\d+[\'\"]>Page [HS][0-9-]+</a>, u?[\'\"]\]\\\\nFrom the Congressional Record Online through the Government Publishing Office \[www\.gpo\.gov\]"
 
 TITLE_INDICATOR = "^[\\\\n\s]*([A-Z0-9 \.,\-!\?]{2,})[\\n\s]*"
+TITLE_INDICATOR_EXEC_SESSION = "^\s+([A-Za-z\s\.\,:\-]+)[\\\\n]{2}"
 
 class CRParser():
     def __init__(self, file_path):
@@ -37,14 +38,14 @@ class CRParser():
         with open(file_path) as f:
             self.congressional_record_text = f.read()
 
-    def split_pages(self):
-        self.congressional_record_pages = re.split(PAGE_BREAK_INDICATOR, self.congressional_record_text)
+    def split_pages(self, page_break_regex = PAGE_BREAK_INDICATOR):
+        self.congressional_record_pages = re.split(page_break_regex, self.congressional_record_text)
 
-    def capture_title(self, page):
-        if not re.match(TITLE_INDICATOR, page):
+    def capture_title(self, page, title_regex = TITLE_INDICATOR):
+        if not re.match(title_regex, page):
             title = ""
         else:
-            title = re.match(TITLE_INDICATOR, page).group(1)
+            title = re.match(title_regex, page).group(1)
         return(title)
 
     def remove_title(self, page):
@@ -63,7 +64,7 @@ class CRParser():
         for page in self.congressional_record_pages:
             title = self.capture_title(page)
             # Don't bother with empty text
-            if not re.match("^\s+$"):
+            if not re.match("^\s+$", page):
                 if title:
                     page_text = self.remove_title(page)
                     self.add_speech_to_collection(title, page_text)
@@ -71,12 +72,26 @@ class CRParser():
                     self.add_speech_to_collection("", page) 
 
     # Let's not pull out votes. Let's do that in a deeper parsing script.
-    def pull_out_votes(self, vote_title = "Vote"):
-        """Pulls out votes which will then be put in the 'other' file
-        Updates self.other so that it includes votes with vote_title as the title
-        Speaker is '' for votes; Takes votes out of speeches"""
-        pass
 
+    # Function for cleaning up text either here or after pulling out speeches
+    
+    def parse_executive_session_speeches(self):
+        # Make sure the title actually comes out this way
+        if "EXECUTIVE SESSION" in self.speeches:
+            for speech in self.speeches["EXECUTIVE_SESSION"]:
+                titles = re.findall(TITLE_INDICATOR_EXEC_SESSION, speech)
+                speeches = self.split_pages(TITLE_INDICATOR_EXEC_SESSION)
+
+                # Refactor this so that it uses same code as above
+                for t, s in zip(titles, speeches):
+                    self.add_speech_to_collection(t, s)
+                    
+            # Remove executive session from dictionary
+            del self.speeches["EXECUTIVE_SESSION"]
+
+
+            
+    
     def filter_no_speakers(self):
         """Take out pages with no speakers and add them to 'other'
         Update both self.speeches and self.other"""
@@ -98,6 +113,7 @@ class CRParser():
         """Does complete processing of 1 Congressional Record file"""
         split_pages()
         add_titles_speeches_to_collection()
+        parse_executive_session_speeches()
 
     def write_file(self, append, speeches_path, other_path = None):
         """Writes to files, either appending to existing files or writing to new ones"""
