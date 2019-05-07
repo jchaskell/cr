@@ -86,10 +86,8 @@ class CRParser():
                     
             # Remove executive session from dictionary
             del self.speeches["EXECUTIVE_SESSION"]
-
-
             
-    
+   # This needs to come before executive session 
     def filter_no_speakers(self):
         """Take out pages with no speakers and add them to 'other'
         Update both self.speeches and self.other"""

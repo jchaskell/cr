@@ -7,7 +7,7 @@ import unittest
 
 from cr.parse_congressional_record import check_true, clean_file, CRParser, TITLE_INDICATOR
 
-test_file = "test_page_filtered_content_total.txt"
+test_file = "parsing_test_input.txt"
 resources_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources")
 
 expected_titles = ["", 
