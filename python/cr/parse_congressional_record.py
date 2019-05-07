@@ -81,10 +81,8 @@ class CRParser():
             for speech in self.speeches["EXECUTIVE_SESSION"]:
                 titles = re.findall(TITLE_INDICATOR_EXEC_SESSION, speech)
                 speeches = self.split_pages(TITLE_INDICATOR_EXEC_SESSION)
-
-                # Refactor this so that it uses same code as above
                 for t, s in zip(titles, speeches):
-                    self.add_speech_to_collection(t, s)
+                    self.add_speech_to_collection("EXECUTIVE SESSION: " + t, s)
                     
             # Remove executive session from dictionary
             del self.speeches["EXECUTIVE_SESSION"]

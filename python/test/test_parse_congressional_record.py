@@ -12,15 +12,18 @@ resources_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resour
 
 expected_titles = ["", 
                    "APPOINTMENT OF ACTING PRESIDENT PRO TEMPORE",
-                   "ADJOURNMENT UNTIL 11 A.M., TUESDAY, JANUARY 19, 2010"]
+                   "EXECUTIVE SESSION: Tribute",
+                   "EXECUTIVE SESSION: Liquid Nicotine"]
 
 expected_speakers = [[""],
                      ["The PRESIDING OFFICER", "Mr. McCONNELL"],
-                     ["The ACTING PRESIDENT pro tempore"]]
+                     ["Ms. COLLINS"],
+                     ["Ms. COLLINS"]]
 
 expected_speeches = [["Senate  The 2nd day of January being the day prescribed by House Joint Resolution 62 for the meeting of the 2d session of the 111th Congress, the Senate assembled in its Chamber at the Capitol at 12 and 10 seconds p.m., and was called to order by the Honorable Mark R. Warner, a Senator from the Commonwealth of Virginia"], 
                      ["The clerk will please read a communication to the Senate from the President pro tempore (Mr. Byrd).  The legislative clerk read the following letter:", "Zippity doo dah"],
-                     ["Under the previous order, the Senate stands adjourned until 11 a.m. on Tuesday, January 19, 2010.  Thereupon, the Senate, at 12 and 43 seconds p.m., adjourned until Tuesday, January 19, 2010, at 11 a.m."]]
+                     ["In tribute to those who have died."],
+                     ["Mr. President, bottles of liquid nicotine for e-cigarettes are bad for our kids."]]
 
 class CRParserTest(unittest.TestCase):
     def setUp(self):
@@ -49,7 +52,6 @@ class CRParserTest(unittest.TestCase):
             if page == '':
                 continue
             for speech in expected_speeches[i - 1]:
-
                 self.assertIn(speech, re.sub('\\\\n', '', page))
             
     def test_capture_title(self):
@@ -83,21 +85,28 @@ class CRParserTest(unittest.TestCase):
         self.test_parser.add_speech_to_collection("Environment", "Nah, who cares.")
         self.assertEqual(expected_speeches, self.test_parser.speeches)
 
-    @unittest.skip("Todo")
     def test_add_titled_speeches_to_collect(self):
         self.test_parser.add_titled_speeches_to_collection()
         test_output = self.test_parser.speeches
-
-        self.assertEqual(set(expected_titles), set(test_output.keys()))
-        # Loop through and make sure speeches go with correct titles
-        for i, speeches in enumerate(expected_speeches):
+        
+        # Loop through and make sure speeches go with correct titles for the first two speeches (second 2 are parsed in next step)
+        for i, speeches in enumerate(expected_speeches[:2]):
             test_page = test_output[expected_titles[i]]
             for x, y in zip(speeches, test_page):
-                self.assertIn(x, re.sub('\\\\n', '', y))
+                if y != '':
+                    self.assertIn(x, re.sub('\\\\n', '', y))
 
-    @unittest.skip("TODO")
-    def test_pull_out_votes(self):
-        pass
+    def parse_executive_session_speeches(self):
+        self.test_parser.add_titled_speeches_collection()
+        self.test_parser.parse_executive_session_speeches()
+        test_output = self.test_parser.speeches
+
+        # TODO: put some of this repetitive code in a function
+        assertNotIn("EXECUTIVE SESSION", test_output.keys())
+        for i, speeches in enumerate(expected_speeches[2:]):
+            test_page = test_output(expected_titles[i])
+            for x, y in zip(speeches, test_page):
+                self.assertIn(x, re.sub('\\\\n', '', y))
 
     @unittest.skip("TODO")
     def test_filter_no_speakers(self):
