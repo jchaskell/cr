@@ -18,7 +18,6 @@ class NoCRContentException(Exception):
 
     pass
 
-
 class CRScraper:
     """Class for scraping one day's worth of content from the Congressional Record"""
 
