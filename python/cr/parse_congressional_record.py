@@ -1,5 +1,6 @@
 """Takes one file of Congressional Record scraping output and parses it into speeches"""
 import argparse
+from collections import OrderedDict
 import csv
 import os
 import re
@@ -27,8 +28,12 @@ def clean_file(file_text, strings_to_replace, replacements=None):
 
 PAGE_BREAK_INDICATOR = "\[[\'\"](\\\\n)+\[[\'\"], <a href=[\'\"]/congressional-record/volume-\d+/(?:senate|house)-section/page/[SH][SH0-9\-]+[\'\"]>Pages? [HS][0-9\-HS]+</a>, u?[\'\"]\]\\\\nFrom the Congressional Record Online through the Government Publishing Office \[www\.gpo\.gov\]"
 TITLE_INDICATOR = "^[\\\\n\s]*([A-Z0-9][A-Z0-9a-z \.,\-!\?:n]+)\n*"
-#TITLE_INDICATOR = "^[\\\\n\s]*([A-Z][A-Z0-9 \.,\-!\?:]+)[\\n\s]*"
-TITLE_INDICATOR_MINOR = "^\s+([A-Za-z\s\.\,:\-]+)[\\\\n]{2}"
+SPEAKER_INDICATORS = [
+    "(The PRESIDING OFFICER\.)",
+    "(The ACTING PRESIDENT pro tempore)\.",
+    "((Mr|Ms|Mrs)\.([A-Zace'\-]+)( [A-Z]+)?)\."
+]
+NON_SPEECH_TITLES = []
 
 
 class CRParser():
@@ -36,8 +41,8 @@ class CRParser():
         """Define a congressional record parser"""
 
     # Nested dictionary of title -> speaker -> speeches
-        self.speeches = {}
-        self.other = {}
+        self.speeches = OrderedDict()
+        self.record = OrderedDict()
 
         with open(file_path) as f:
             self.congressional_record_text = f.read()
@@ -92,13 +97,27 @@ class CRParser():
     #         # Remove executive session from dictionary
     #         del self.speeches["EXECUTIVE_SESSION"]
 
-   # This needs to come before executive session
-    def filter_no_speakers(self):
-        """Take out pages with no speakers and add them to 'other'
-        Update both self.speeches and self.other"""
-        pass
+    def print_speakers(self):
+        # To start with, capture everything up to the second \. and print it out
+        for title in self.speeches.keys():
+            for speech in self.speeches[title]:
 
-    def match_for_speakers(self):
+                match = ""
+                m = re.
+
+    def capture_speakers(self):
+        # For a speech, use the speaker divider and get teh speakers
+        # If a speech doesn't have a speaker, it seems like, if it starts with "Mr President"
+        # or "Madam President", it still has a speaker but it's a continuation of the previous speech's speaker
+
+        # To start with, capture everything up to the second \. and print it out
+        for title in self.speeches.keys():
+            for speech in self.speeches[title]:
+
+                match = ""
+                m = re.
+
+    def match_speakers(self):
         """Match for speakers and mark speakers; pull out speeches w/ no speakers
         Update self.speeches so they have both titles and speakers
         Update self.other to include text from pages with no speaker"""
@@ -109,12 +128,25 @@ class CRParser():
         # Also need to clean up extra spaces and \n
         pass
 
+    def clean_speeches(self):
+        # remove double \n\n to start speeches
+        replacement = OrderedDict()
+        for title in self.speeches.keys():
+            speeches = []
+            for speech in self.speeches[title]:
+                s = re.sub('^[\n\s]+', '', speech)
+                speeches.append(s)
+            replacement[title] = speeches
+        self.speeches = replacement
+
     # Run function for processing 1 CR file
     def process_file(self):
         """Does complete processing of 1 Congressional Record file"""
         self.split_pages()
         self.add_titled_speeches_to_collection()
-        # parse_executive_session_speeches()
+        # parse_executive_session_speeches() - may still need another function for parsing titles,
+        # but it looks ok right now
+        self.clean_speeches()
 
     def write_file(self, append, speeches_path, other_path=None):
         """Writes to files, either appending to existing files or writing to new ones"""
@@ -138,7 +170,6 @@ def writer_helper(speeches, text_file_path="test.tsv"):
 def main(file_path, append, output_file):
     parser = CRParser(file_path)
     parser.process_file()
-    #parser.write_file(append, output_file1, output_file2)
     writer_helper(parser.speeches)
 
 
